@@ -10,6 +10,17 @@ import com.tedu.element.ElementObj;
 public class ElementManager {
 	
 	private Map<GameElement,List<ElementObj>> gameElements;	
+	
+	private boolean globalSlow = false;
+
+	public void setGlobalSlow(boolean slow) {
+	    this.globalSlow = slow;
+	}
+
+	public boolean isGlobalSlow() {
+	    return globalSlow;
+	}
+	
 	public Map<GameElement, List<ElementObj>> getGameElements() {
 		return gameElements;
 	}
