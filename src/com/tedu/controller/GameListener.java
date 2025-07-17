@@ -1,150 +1,149 @@
+
 package com.tedu.controller;
 
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import com.tedu.controller.GameThread.GameState;
-import com.tedu.element.ElementObj;
+import com.tedu.show.GameMainJPanel;
+import com.tedu.controller.GameThread;
 import com.tedu.manager.ElementManager;
 import com.tedu.manager.GameElement;
-import com.tedu.manager.SoundManager;
-import com.tedu.show.GameMainJPanel;
+import com.tedu.element.ElementObj;
 
-/*
- * @说明 监听类，用于监听用户的操作keyListener
- * **/
+public class GameListener extends KeyAdapter {
+    private GameThread gameThread;
+    private GameMainJPanel panel;
 
-public class GameListener implements KeyListener{
-	private GameThread gameThread;
-	private GameMainJPanel gamePanel;
-	
-	public GameListener(GameThread gameThread,GameMainJPanel gamePanel) {
-		this.gameThread = gameThread;
-		this.gamePanel = gamePanel;
-	}
-	
-	
-	
-	private ElementManager em = ElementManager.getManager();
-	private Set<Integer> set =new HashSet<Integer>();
-	
-	@Override
-	public void keyTyped(KeyEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-	
-	
-	@Override
-	public void keyPressed(KeyEvent e) {
-	    switch (gameThread.getGameState()) {
-	        case MENU:
-	            handleMenuInput(e);
-	            break;
-	        case LEVEL_SELECT:
-	            handleLevelSelectInput(e);
-	            break;
-	        case SHIP_SELECT:
-	        	handleShipSelectInput(e);
-	        case RUNNING:
-	            handleGameInput(e);
-	            break;
-	        case GAME_OVER:
-	            handleGameOverInput(e);
-	            break;
-	    }
-	}
-	
-	private void handleMenuInput(KeyEvent e) {
-	    if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-	        gameThread.enterLevelSelect(); // 进入关卡选择界面
-	    }
-	}
-	
-	private void handleLevelSelectInput(KeyEvent e) {
-	    switch (e.getKeyCode()) {
-	        case KeyEvent.VK_UP:
-	            if(gamePanel != null) {  // 添加判空保护
-	                gamePanel.selectLevelUp();
-	                gameThread.setSelectedLevel(gamePanel.getSelectedLevel());
-	            }
-//	            SoundManager.getInstance().playSound("menu_select");
-	            break;
-	        case KeyEvent.VK_DOWN:
-	            if(gamePanel != null) {  // 添加判空保护
-	                gamePanel.selectLevelDown();
-	                gameThread.setSelectedLevel(gamePanel.getSelectedLevel());
-	            }
-//	            SoundManager.getInstance().playSound("menu_select");
-	            break;
-	        case KeyEvent.VK_ENTER:
-//	            gameThread.startGame();
-	            gameThread.setGameState(GameState.SHIP_SELECT);
-//	            SoundManager.getInstance().playSound("menu_confirm");
-	            break;
-	        case KeyEvent.VK_ESCAPE:
-	            gameThread.setGameState(GameState.MENU); // 这个调用现在是正确的
-//	            SoundManager.getInstance().playSound("menu_cancel");
-	            break;
-	    }
-	}
-	
-	private void handleShipSelectInput(KeyEvent e) {
-	    switch (e.getKeyCode()) {
-	        case KeyEvent.VK_UP:
-	            gamePanel.selectShipUp();
-//	            SoundManager.getInstance().playSound("menu_select");
-	            break;
-	        case KeyEvent.VK_DOWN:
-	            gamePanel.selectShipDown();
-//	            SoundManager.getInstance().playSound("menu_select");
-	            break;
-	        case KeyEvent.VK_ENTER:
-	            gameThread.setSelectedShip(gamePanel.getSelectedShipIndex());
-	            gameThread.startGame();
-	            gameThread.setGameState(GameState.RUNNING);
-//	            SoundManager.getInstance().playSound("menu_confirm");
-	            break;
-	        case KeyEvent.VK_ESCAPE:
-	            gameThread.setGameState(GameState.LEVEL_SELECT);
-//	            SoundManager.getInstance().playSound("menu_cancel");
-	            break;
-	    }
-	}
-	
-	private void handleGameInput(KeyEvent e) {
-	    List<ElementObj> play = em.getElementsByKey(GameElement.PLAY);
-	    for (ElementObj obj : play) {
-	        obj.keyClick(true, e.getKeyCode());
-	    }
-	}
+    public GameListener(GameThread gameThread, GameMainJPanel panel) {
+        this.gameThread = gameThread;
+        this.panel = panel;
+    }
 
-	private void handleGameOverInput(KeyEvent e) {
-	    if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-	        gameThread.setGameState(GameState.MENU);
-	    }
-	}
-	
-	//松开
-	@Override
-	public void keyReleased(KeyEvent e) {
-//		if(!set.contains(e.getKeyCode())){
-//			return;
-//		}
-//		set.remove(e.getKeyCode());
-		if(gameThread.getGameState() == GameState.RUNNING) {
-			List<ElementObj> play = em.getElementsByKey(GameElement.PLAY);
-			for(ElementObj obj:play) {
-				obj.keyClick(false,e.getKeyCode());
-			}
-		}
-//		System.out.println("keyPeleased"+e.getKeyCode());
-		
-	}
-	
-	
+    @Override
+    public void keyPressed(KeyEvent e) {
+        // 主菜单状态
+        if (gameThread.getGameState() == GameThread.GameState.MENU) {
+            // 排行榜界面
+            if (panel.isInRank()) {
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    panel.setInRank(false); // ESC返回主菜单
+                }
+                return;
+            }
+            // 主菜单选项切换
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_UP:
+                    panel.menuUp();
+                    break;
+                case KeyEvent.VK_DOWN:
+                    panel.menuDown();
+                    break;
+                case KeyEvent.VK_ENTER:
+                case KeyEvent.VK_SPACE:
+                    int idx = panel.getMenuIndex();
+                    if (idx == 0) {
+                        // 开始游戏，进入关卡选择
+                        gameThread.setGameState(GameThread.GameState.LEVEL_SELECT);
+                    } else if (idx == 1) {
+                        // 排行榜
+                        panel.setInRank(true);
+                    } else if (idx == 2) {
+                        // 退出
+                        System.exit(0);
+                    }
+                    break;
+            }
+            return;
+        }
 
+        // 排行榜界面（其它状态下也能进排行榜时可加此判断）
+        if (panel.isInRank()) {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                panel.setInRank(false);
+            }
+            return;
+        }
+
+        // 关卡选择界面
+        if (gameThread.getGameState() == GameThread.GameState.LEVEL_SELECT) {
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_UP:
+                    panel.selectLevelUp();
+                    break;
+                case KeyEvent.VK_DOWN:
+                    panel.selectLevelDown();
+                    break;
+                case KeyEvent.VK_ENTER:
+                case KeyEvent.VK_SPACE:
+                    // 进入战机选择
+                    gameThread.setGameState(GameThread.GameState.SHIP_SELECT);
+                    break;
+                case KeyEvent.VK_ESCAPE:
+                    // 返回主菜单
+                    gameThread.setGameState(GameThread.GameState.MENU);
+                    break;
+            }
+            return;
+        }
+
+        // 战机选择界面
+        if (gameThread.getGameState() == GameThread.GameState.SHIP_SELECT) {
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_UP:
+                    panel.selectShipUp();
+                    break;
+                case KeyEvent.VK_DOWN:
+                    panel.selectShipDown();
+                    break;
+                case KeyEvent.VK_ENTER:
+                case KeyEvent.VK_SPACE:
+                    // 选定战机，开始游戏
+                    // 你需要在GameThread中实现startGame方法，或根据实际逻辑调整
+                    gameThread.startGame(panel.getSelectedLevel(), panel.getSelectedShipIndex());
+                    break;
+                case KeyEvent.VK_ESCAPE:
+                    // 返回关卡选择
+                    gameThread.setGameState(GameThread.GameState.LEVEL_SELECT);
+                    break;
+            }
+            return;
+        }
+
+        // 游戏运行中
+        if (gameThread.getGameState() == GameThread.GameState.RUNNING) {
+            // 方向、射击、暂停等
+            for (ElementObj obj : ElementManager.getManager().getElementsByKey(GameElement.PLAY)) {
+                obj.keyClick(true, e.getKeyCode());
+            }
+            if (e.getKeyCode() == KeyEvent.VK_P) {
+                gameThread.setGameState(GameThread.GameState.PAUSED);
+            }
+            return;
+        }
+
+        // 游戏暂停
+        if (gameThread.getGameState() == GameThread.GameState.PAUSED) {
+            if (e.getKeyCode() == KeyEvent.VK_P) {
+                gameThread.setGameState(GameThread.GameState.RUNNING);
+            }
+            return;
+        }
+
+        // 游戏结束
+        if (gameThread.getGameState() == GameThread.GameState.GAME_OVER) {
+            if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+                gameThread.setGameState(GameThread.GameState.MENU);
+            }
+            return;
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        // 游戏运行中，处理方向键松开
+        if (gameThread.getGameState() == GameThread.GameState.RUNNING) {
+            for (ElementObj obj : ElementManager.getManager().getElementsByKey(GameElement.PLAY)) {
+                obj.keyClick(false, e.getKeyCode());
+            }
+        }
+    }
 }
