@@ -48,7 +48,7 @@ public abstract class ElementObj {
 	 * @设计模式 模板模式；在模板模式中定义 对象执行方法的先后顺序，由子类选择性重写方法
 	 * 		1.移动 2.换装 3.子弹发射
 	 * */
-	public final void model(long gameTime) {//这个不能重写
+	public final void model(long gameTime) {
 //		先换装
 		updateImage();
 //		再移动
@@ -62,7 +62,7 @@ public abstract class ElementObj {
 	protected void add(long gameTime) {}
 	
 	//死亡方法 给子类继承的
-	public void die() {//死亡也是一个对象
+	public void die() {
 		
 	}
 	
