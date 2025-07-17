@@ -1,6 +1,7 @@
 package com.tedu.game;
 
 import com.tedu.controller.GameListener;
+
 import com.tedu.controller.GameThread;
 import com.tedu.show.GameJFrame;
 import com.tedu.show.GameMainJPanel;
@@ -13,9 +14,10 @@ public class GameStart {
 		
 		
 		
-		GameMainJPanel jp=
-				new GameMainJPanel(th);//画布
+		GameMainJPanel jp=new GameMainJPanel(th);//画布
 		GameListener listener = new GameListener(th,jp);//监听器
+		
+		th.setPanel(jp);
 		
 		gj.setjPanel(jp);
 		gj.setKeyListener(listener);
@@ -23,5 +25,6 @@ public class GameStart {
 		gj.start();
 		
 	
+		
 	}
 }
