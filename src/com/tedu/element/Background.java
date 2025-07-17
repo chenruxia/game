@@ -39,20 +39,19 @@ public class Background extends ElementObj{
     
     
 	
-	@Override
-	public void showElement(Graphics g) {
-//		System.out.println("正在绘制背景，位置: " + this.getX() + "," + this.getY()); // 调试
-//		g.drawImage(bgImage, 0, y1, 800, 600,null);
-//		g.drawImage(bgImage, 0, y2, 800, 600,null);
-		if(bgImage != null) {
-			g.drawImage(bgImage, 0, y1, this.getW(), this.getH(), null);
-			g.drawImage(bgImage, 0, y2, this.getW(), this.getH(), null);
-		}else {
-			g.setColor(Color.RED);
-			g.fillRect(0, 0, getW(), getH());
-			System.out.println("背景图片加载失败："+bgPath);
-		}
-	}
+    @Override
+    public void showElement(Graphics g) {
+        int w = g.getClipBounds().width;
+        int h = g.getClipBounds().height;
+        if(bgImage != null) {
+            g.drawImage(bgImage, 0, y1, w, h, null);
+            g.drawImage(bgImage, 0, y2, w, h, null);
+        } else {
+            g.setColor(Color.RED);
+            g.fillRect(0, 0, w, h);
+            System.out.println("背景图片加载失败：" + bgPath);
+        }
+    }
 
 	@Override
     protected void move() {
